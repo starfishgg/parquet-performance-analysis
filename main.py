@@ -23,7 +23,7 @@ from src.dataset_loader import DatasetLoader
 from src.pandas_runner import PandasRunner
 from src.pyspark_runner import PySparkRunner
 from src.pandas_tests import run_pandas_benchmark
-from src.pyspark_tests import run_pyspark_full_read_benchmark
+from src.pyspark_tests import run_pyspark_benchmark
 from src.utils import print_section, print_memory_usage
 
 
@@ -164,7 +164,7 @@ def main() -> None:
             parquet_path=parquet_path,
         )
 
-        run_pyspark_full_read_benchmark(
+        run_pyspark_benchmark(
             runner=pyspark_runner,
             benchmark=benchmark,
         )

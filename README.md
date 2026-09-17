@@ -4,23 +4,22 @@ A data engineering project investigating the performance differences between **C
 
 The project uses the same underlying dataset in both CSV and Parquet formats so that the performance comparisons can be made under consistent conditions.
 
-AIML dataset:
-===========================
-step            LONG
-type	        VARCHAR
-amount	        DOUBLE
+## AIML Dataset
 
-nameOrig    	VARCHAR
-oldbalanceOrg	DOUBLE
-newbalanceOrig	DOUBLE
+| Column           | Data Type |
+| ---------------- | --------- |
+| `step`           | LONG      |
+| `type`           | VARCHAR   |
+| `amount`         | DOUBLE    |
+| `nameOrig`       | VARCHAR   |
+| `oldbalanceOrg`  | DOUBLE    |
+| `newbalanceOrig` | DOUBLE    |
+| `nameDest`       | VARCHAR   |
+| `oldbalanceDest` | DOUBLE    |
+| `newbalanceDest` | DOUBLE    |
+| `isFlaggedFraud` | LONG      |
+| `isFraud`        | LONG      |
 
-nameDest	    VARCHAR
-oldbalanceDest	DOUBLE
-newbalanceDest	DOUBLE
-
-isFlaggedFraud	LONG
-isFraud	        LONG
-===========================
 
 The AIML Fraud dataset can be downloaded in CSV format from:
 https://www.kaggle.com/datasets/amanalisiddiqui/fraud-detection-dataset

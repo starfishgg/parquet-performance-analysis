@@ -1,11 +1,12 @@
 """
 utils.py
 
-Some commonly reusable functions used across the project.
+Some reusable functions for this project.
 """
 
 import os
 import psutil
+from math import isclose
 
 
 
@@ -37,3 +38,15 @@ def get_memory_usage_mb() -> float:
 
     return process.memory_info().rss / (1024 * 1024)
 
+
+def values_are_equal(first: float, second: float) -> bool:
+    """
+    Return True if two floating-point values are equal within
+    the tolerance used for floating-point rounding differences.
+    """
+    return isclose(
+        first,
+        second,
+        rel_tol=1e-9,
+        abs_tol=0.01,
+    )

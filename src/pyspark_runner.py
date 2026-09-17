@@ -126,7 +126,7 @@ class PySparkRunner:
         return dataframe, elapsed_time
 
 
-    def filer_and_aggregate(
+    def filter_and_aggregation(
             self,
             dataframe: DataFrame,
     ) -> tuple[int, float, float]:
@@ -151,7 +151,7 @@ class PySparkRunner:
         results = (
             dataframe
             .filter(col("isFraud") == 1)
-            .add(
+            .agg(
                 count("*").alias("fraud_count"),
                 sum("amount").alias("total_fraud_amount"),
             )
@@ -170,7 +170,7 @@ class PySparkRunner:
         )
 
 
-    def group_by_aggregate(
+    def group_by_aggregation(
         self,
         dataframe: DataFrame,
     ) -> tuple[DataFrame, float]:
@@ -243,7 +243,59 @@ class PySparkRunner:
         return results, elapsed_time
 
 
-    def filter_and_project(
+    # Direct disk access test
+    def load_selected_columns(
+            self,
+    ) -> tuple[DataFrame, DataFrame, float, float]:
+        """
+        Load only the selected columns directly from CSV and Parquet.
+        """
+
+        selected_columns = [
+            "type",
+            "amount",
+            "isFraud",
+        ]
+
+        # CSV
+
+        start_time = perf_counter()
+
+        csv_dataframe = (
+            self.spark.read
+            .option("header", True)
+            .option("inferSchema", True)
+            .csv(str(self.csv_path))
+            .select(*selected_columns)
+        )
+
+        csv_dataframe.count()
+
+        csv_elapsed_time = perf_counter() - start_time
+
+        # PARQUET
+
+        start_time = perf_counter()
+
+        parquet_dataframe = (
+            self.spark.read
+            .parquet(str(self.parquet_path))
+            .select(*selected_columns)
+        )
+
+        parquet_dataframe.count()
+
+        parquet_elapsed_time = perf_counter() - start_time
+
+        return (
+            csv_dataframe,
+            parquet_dataframe,
+            csv_elapsed_time,
+            parquet_elapsed_time,
+        )
+
+
+    def filter_and_projection(
         self,
         dataframe: DataFrame,
     ) -> tuple[DataFrame, float]:
@@ -276,6 +328,6 @@ class PySparkRunner:
         # Force the filter and projection to execute.
         results.count()
 
-        elapsed_time = perf_counter - start_time
+        elapsed_time = perf_counter() - start_time
 
         return results, elapsed_time

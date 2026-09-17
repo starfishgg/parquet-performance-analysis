@@ -5,6 +5,8 @@ Provides functions for running and diplaying the Pandas
 performance tests.
 """
 
+import pandas as pd
+
 from src.benchmark import Benchmark
 from src.pandas_runner import PandasRunner
 from src.utils import print_section, print_memory_usage
@@ -26,19 +28,19 @@ def run_pandas_benchmark(
     print_section("PANDAS PERFORMANCE TEST")
 
     print("\nLoading CSV with Pandas...")
-    pandas_csv_dataframe, csv_load_time = runner.load_csv()
+    csv_dataframe, csv_load_time = runner.load_csv()
 
     print(f"CSV load time: {csv_load_time:.3f} seconds")
-    print(f"CSV rows:      {len(pandas_csv_dataframe):,}")
-    print(f"CSV columns:   {len(pandas_csv_dataframe.columns)}")
+    print(f"CSV rows:      {len(csv_dataframe):,}")
+    print(f"CSV columns:   {len(csv_dataframe.columns)}")
 
 
     print("\nLoading Parquet with Pandas...")
-    pandas_parquet_dataframe, parquet_load_time = runner.load_parquet()
+    parquet_dataframe, parquet_load_time = runner.load_parquet()
 
     print(f"Parquet load time: {parquet_load_time:.3f} seconds")
-    print(f"Parquet rows:      {len(pandas_parquet_dataframe):,}")
-    print(f"Parquet columns:   {len(pandas_parquet_dataframe.columns)}")
+    print(f"Parquet rows:      {len(parquet_dataframe):,}")
+    print(f"Parquet columns:   {len(parquet_dataframe.columns)}")
 
     print_section("PANDAS FULL READ RESULTS")
     print(f"CSV:     {csv_load_time:.3f} seconds")
@@ -62,22 +64,22 @@ def run_pandas_benchmark(
     run_pandas_filter_and_aggregation(
         runner=runner,
         benchmark=benchmark,
-        csv_dataframe=pandas_csv_dataframe,
-        parquet_dataframe=pandas_parquet_dataframe,
+        csv_dataframe=csv_dataframe,
+        parquet_dataframe=parquet_dataframe,
     )
 
     run_pandas_group_by_aggregation(
         runner=runner,
         benchmark=benchmark,
-        csv_dataframe=pandas_csv_dataframe,
-        parquet_dataframe=pandas_parquet_dataframe,
+        csv_dataframe=csv_dataframe,
+        parquet_dataframe=parquet_dataframe,
     )
 
     run_pandas_column_projection(
             runner=runner,
             benchmark=benchmark,
-            csv_dataframe=pandas_csv_dataframe,
-            parquet_dataframe=pandas_parquet_dataframe,
+            csv_dataframe=csv_dataframe,
+            parquet_dataframe=parquet_dataframe,
         )
 
     run_pandas_direct_projection_load(
@@ -88,22 +90,16 @@ def run_pandas_benchmark(
     run_pandas_filter_and_projection(
             runner=runner,
             benchmark=benchmark,
-            csv_dataframe=pandas_csv_dataframe,
-            parquet_dataframe=pandas_parquet_dataframe,
+            csv_dataframe=csv_dataframe,
+            parquet_dataframe=parquet_dataframe,
         )
-
-    # DataFrames are no longer needed
-    print_memory_usage()
-    del pandas_csv_dataframe
-    del pandas_parquet_dataframe
-    print_memory_usage()
 
 
 def run_pandas_filter_and_aggregation(
         runner: PandasRunner,
         benchmark: Benchmark,
-        csv_dataframe,
-        parquet_dataframe,
+        csv_dataframe: pd.DataFrame,
+        parquet_dataframe: pd.DataFrame,
 ) -> None:
     """
     Run and validate the Pandas filter_and_aggregation workload.
@@ -170,8 +166,8 @@ def run_pandas_filter_and_aggregation(
 def run_pandas_group_by_aggregation(
     runner: PandasRunner,
     benchmark: Benchmark,
-    csv_dataframe,
-    parquet_dataframe
+    csv_dataframe: pd.DataFrame,
+    parquet_dataframe: pd.DataFrame,
 ) -> None:
     """
     Run and validate the Pandas group-by aggregation workload.
@@ -187,9 +183,8 @@ def run_pandas_group_by_aggregation(
 
 
 
-    print(f"Analysis time: {csv_analysis_time:.3f} seconds")
-
-    print("\nCSV results:")
+    print(f"CSV time: {csv_analysis_time:.3f} seconds")
+    print("CSV results:")
     print(csv_results.to_string(index=False))
 
     print("\nAnalysing Parquet DataFrame...")
@@ -201,7 +196,7 @@ def run_pandas_group_by_aggregation(
         parquet_dataframe
     )
 
-    print(f"Analysis time: {parquet_analysis_time:.3f} seconds")
+    print(f"Parquet time: {parquet_analysis_time:.3f} seconds")
     print("\nParquet results:")
     print(parquet_results.to_string(index=False))
 
@@ -231,8 +226,8 @@ def run_pandas_group_by_aggregation(
 def run_pandas_column_projection(
         runner: PandasRunner,
         benchmark: Benchmark,
-        csv_dataframe,
-        parquet_dataframe,
+        csv_dataframe: pd.DataFrame,
+        parquet_dataframe: pd.DataFrame,
 ) -> None:
     """
     Run and validate the in-memory column projection workload.
@@ -335,8 +330,8 @@ def run_pandas_direct_projection_load(
 def run_pandas_filter_and_projection(
         runner: PandasRunner,
         benchmark: Benchmark,
-        csv_dataframe,
-        parquet_dataframe,
+        csv_dataframe: pd.DataFrame,
+        parquet_dataframe: pd.DataFrame,
 ) -> None:
     """
     Run and validate the  Pandas filter_and_projection workload.
