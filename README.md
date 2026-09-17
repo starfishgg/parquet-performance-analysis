@@ -9,15 +9,12 @@ AIML dataset:
 step            LONG
 type	        VARCHAR
 amount	        DOUBLE
-
 nameOrig    	VARCHAR
 oldbalanceOrg	DOUBLE
 newbalanceOrig	DOUBLE
-
 nameDest	    VARCHAR
 oldbalanceDest	DOUBLE
 newbalanceDest	DOUBLE
-
 isFlaggedFraud	LONG
 isFraud	        LONG
 ===========================
