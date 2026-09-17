@@ -40,6 +40,7 @@ class PandasRunner:
         self.parquet_path = parquet_path
 
 
+    # FULL READ WORKLOAD
     def load_csv(self) -> tuple[pd.DataFrame, float]:
         """
         Load the CSV dataset and measure the loading time.
@@ -59,6 +60,7 @@ class PandasRunner:
         return dataframe, elapsed_time
 
 
+    # FULL READ WORKLOAD
     def load_parquet(self) -> tuple[pd.DataFrame, float]:
         """
         Load the Parquet dataset and measure the loading time.
@@ -78,7 +80,7 @@ class PandasRunner:
         return dataframe, elapsed_time
 
 
-    def analyse_fraud(
+    def filter_and_aggregation(
             self,
             dataframe: pd.DataFrame,
     ) -> tuple[int, float, float]:
@@ -116,19 +118,13 @@ class PandasRunner:
         return fraud_count, total_fraud_amount, elapsed_time
 
 
-    def analyse_by_transaction_type(
+    def group_by_aggregation(
             self,
             dataframe: pd.DataFrame,
     ) -> tuple[pd.DataFrame, float]:
         """
-        Aggregate transaction data by transaction type.
+        Group transactions by type and calculate summary values.
         
-        For each transaction type, calculate:
-            - Number of transactions.
-            - Total transaction amount.
-            - Average transaction amount.
-            - Number of fraudulent transactions.
-
         Parameters
         ----------
         dataframe:
@@ -160,7 +156,7 @@ class PandasRunner:
         return results, elapsed_time
 
 
-    def analyse_selected_columns(
+    def column_projection(
             self,
             dataframe: pd.DataFrame,
     ) -> tuple[pd.DataFrame, float]:
@@ -192,6 +188,10 @@ class PandasRunner:
         return selected_columns, elapsed_time
 
 
+    # Note this method runs CSV and Parquet in a single pass.
+    # This measures direct from disk performance.
+    # May be worth running from HDD, SSD, USB Stick?
+    # HDD Spin up if the HDD was inactive/asleep may affect results also.
     def load_selected_columns(
             self,
     ) -> tuple[pd.DataFrame, pd.DataFrame, float, float]:
@@ -237,3 +237,40 @@ class PandasRunner:
             csv_elapsed_time,
             parquet_elapsed_time,
         )
+
+
+    def filter_and_projection(
+            self,
+            dataframe: pd.DataFrame,
+    ) -> tuple[pd.DataFrame, float]:
+        """
+        Filter fraudulent transactions and return only the columns
+        required for the analysis.
+        
+        The workload:
+        
+        1. Filters to fraudulent transactions.
+        2. Selects the transaction type and amount.
+        
+        Parameters
+        ----------
+        dataframe:
+            DataFrame containing the transaction data.
+        
+        
+        Returns
+        -------
+        tuple[pd.DataFrame, float]
+            Filtered DataFrame and elapsed time in seconds.
+        """
+
+        start_time = perf_counter()
+
+        results = dataframe.loc[
+            dataframe["isFraud"] == 1,
+            ["type", "amount"]
+        ].copy()
+
+        elapsed_time = perf_counter() - start_time
+
+        return results, elapsed_time
