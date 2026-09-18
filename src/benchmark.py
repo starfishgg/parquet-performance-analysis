@@ -7,6 +7,8 @@ Defines the analytical workloads used by the performance benchmark.
 
 from dataclasses import dataclass
 
+from src.utils import print_section
+
 
 
 
@@ -117,6 +119,21 @@ class Benchmark:
         return result
 
 
+    def remove_results_for_engine(self, engine: str) -> None:
+        """
+        Remove all previously recorded results for one engine.
+        
+        This allows a new run of an engine's benchmarks to replace
+        its previosu results rather than creating duplicates.
+        """
+
+        self.results = [
+            result
+            for result in self.results
+            if result.engine != engine
+        ]
+
+
     def get_results(self) -> list[BenchmarkResult]:
         """
         Return all recorded benchmark results.
@@ -129,3 +146,60 @@ class Benchmark:
 
         return self.results.copy()
 
+
+    def print_results(self) -> None:
+        """
+        Print all recorded benchmark results grouped by workload.
+        """
+
+        print_section("RECORDED BENCHMARK RESULTS")
+
+        #results = self.get_results()
+
+        if not self.results:
+            print("No benchmark results have been recorded.")
+            return
+
+        workload_order = {
+            workload: position
+            for position, workload in enumerate(
+                self.WORKLOADS
+            )
+        }
+
+        sorted_results = sorted(
+            self.results,
+            key=lambda result: (
+                workload_order.get(
+                    result.workload,
+                    len(workload_order))
+                ,
+                result.engine,
+                result.file_format,
+            ),
+        )
+
+        current_workload = None
+
+        for result in sorted_results:
+            if result.workload != current_workload:
+                if current_workload is not None:
+                    print()
+
+                print(f"{result.workload}")
+
+                print(
+                    f"{'Engine':<12}"
+                    f"{'Format':<10}"
+                    f"{'Time (s)':>12}"
+                )
+
+                print("-" * 36)
+
+                current_workload = result.workload
+
+            print(
+                f"{result.engine:<12}"
+                f"{result.file_format:<10}"
+                f"{result.elapsed_time:>12.3f}"
+            )

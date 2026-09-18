@@ -24,7 +24,7 @@ from src.pandas_runner import PandasRunner
 from src.pyspark_runner import PySparkRunner
 from src.pandas_tests import run_pandas_benchmark
 from src.pyspark_tests import run_pyspark_benchmark
-from src.utils import print_section, print_memory_usage
+from src.utils import print_section
 
 
 
@@ -113,9 +113,6 @@ def validate_datasets(loader: DatasetLoader) -> None:
         print("The CSV and PArquet row counts do not match.")
 
 
-
-
-
 def print_benchmark_results(
     benchmark: Benchmark,
 ) -> None:
@@ -126,6 +123,95 @@ def print_benchmark_results(
 
     for result in benchmark.get_results():
         print(result)
+
+
+def run_schema_loading_test(loader: DatasetLoader) -> None:
+    """
+    Compare CSV loading performance using schema inference
+    and an explicitly declared schema across different
+    dataset sizes.
+    """
+
+    print_section("CSV SCHEMA LOADING TEST")
+
+    path_string = "data/resized/AIML Dataset "
+
+    dataset_sizes = [
+        ( "10%", Path(path_string +  "10%.csv")),
+        ( "25%", Path(path_string +  "25%.csv")),
+        ( "50%", Path(path_string +  "50%.csv")),
+        ( "75%", Path(path_string +  "75%.csv")),
+        ("100%", loader.csv_path),
+    ]
+
+    for size_label, csv_path in dataset_sizes:
+        print()
+        print(f"Dataset size: {size_label}")
+
+        _, inference_time = loader.load_csv_with_inference(csv_path)
+
+        _, schema_time = loader.load_csv_with_schema(csv_path)
+
+        print(f"Schema inference: {inference_time:.3f} seconds")
+
+        print(f" Explicit schema: {schema_time:.3f} seconds")
+
+
+    print_section("PARQUET PERFORMANCE ANALYSIS")
+
+    report_dataset_files(
+        loader=loader,
+        csv_path=loader.csv_path,
+        parquet_path=loader.parquet_path,
+    )
+
+    validate_datasets(loader)
+
+
+def run_menu(
+    loader: DatasetLoader,
+    pandas_runner: PandasRunner,
+    pyspark_runner: PySparkRunner,
+    benchmark: Benchmark,
+) -> None:
+    """
+    Display the benchmarh menu and run the selected test.
+    """
+
+    while True:
+        print_section("DATA PROCESSING PERFORMANCE ANALYSIS")
+
+        print("\t1. Run CSV Schema loading test (NOT BENCHMARKED)")
+        print("\t2. Run Pandas benchmarks")
+        print("\t3. Run PySpark benchmarks")
+        print("\t4. Run DuckDB benchmarks (NOT YET IMPLEMENTED)")
+        print("\t5. Run all available benchmarks")
+        print("\t6. Print Benchmark Results")
+        print("\t7. Exit (or 'q')")
+
+        choice = input("\nSelect an options: ")
+
+        if choice == "1":
+            run_schema_loading_test(loader)
+        elif choice == "2":
+            run_pandas_benchmark(pandas_runner, benchmark)
+        elif choice == "3":
+            run_pyspark_benchmark(pyspark_runner, benchmark)
+        elif choice == "4":
+            pass
+            #run_duckdb_benchmark()
+        elif choice == "5":
+            run_pandas_benchmark(pandas_runner, benchmark)
+            run_pyspark_benchmark(pyspark_runner, benchmark)
+        elif choice == "6":
+            benchmark.print_results()
+        elif choice == "7" or choice == "q":
+            break
+        else:
+            print("Invalid selection.")
+            
+
+
 
 
 def main() -> None:
@@ -139,42 +225,33 @@ def main() -> None:
 
     spark = create_spark_session()
 
+    loader = DatasetLoader(
+        spark=spark,
+        csv_path=csv_path,
+        parquet_path=parquet_path,
+    )
+
+    pandas_runner = PandasRunner(
+        csv_path, 
+        parquet_path,
+    )
+
+    pyspark_runner = PySparkRunner(
+        spark=spark,
+        csv_path=csv_path,
+        parquet_path=parquet_path,
+    )
+
     try:
-        loader = DatasetLoader(
-            spark=spark,
-            csv_path=csv_path,
-            parquet_path=parquet_path,
-        )
-
-        print_section("PARQUET PERFORMANCE ANALYSIS")
-
-        report_dataset_files(
-            loader=loader,
-            csv_path=csv_path,
-            parquet_path=parquet_path,
-        )
-
-        validate_datasets(loader)
-
-        loader = None
-
-        pyspark_runner = PySparkRunner(
-            spark=spark,
-            csv_path=csv_path,
-            parquet_path=parquet_path,
-        )
-
-        run_pyspark_benchmark(
-            runner=pyspark_runner,
-            benchmark=benchmark,
-        )
+        run_menu(
+            loader = loader,
+            pandas_runner = pandas_runner,
+            pyspark_runner = pyspark_runner,
+            benchmark = benchmark,
+            )        
 
     finally:
         spark.stop()
-
-    pandas_runner = PandasRunner(csv_path, parquet_path)
-    run_pandas_benchmark(runner=pandas_runner, benchmark=benchmark)
-    print_benchmark_results(benchmark)
 
 
 

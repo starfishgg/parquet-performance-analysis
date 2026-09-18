@@ -26,6 +26,11 @@ def run_pyspark_benchmark(
     This currently measures only the complete parquet and Parquet reads.
     """
 
+    # Remove the old results before appending new ones.
+    benchmark.remove_results_for_engine(
+        Benchmark.ENGINE_PYSPARK
+    )
+
     print_section("PYSPARK FULL READ TEST")
 
     print("\nLoading CSV with PySpark...")

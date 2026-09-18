@@ -20,14 +20,15 @@ The project uses the same underlying dataset in both CSV and Parquet formats so 
 | `isFlaggedFraud` | LONG      |
 | `isFraud`        | LONG      |
 
-
 The AIML Fraud dataset can be downloaded in CSV format from:
+
 https://www.kaggle.com/datasets/amanalisiddiqui/fraud-detection-dataset
-You will need to convert it to parquet format yourself.
+
+You will need to convert it to Parquet format yourself.
 
 ## Project Goals
 
-The project will investigate how storage format and processing engine affect:
+The project investigates how storage format and processing engine affect:
 
 * File size
 * Data loading time
@@ -36,7 +37,7 @@ The project will investigate how storage format and processing engine affect:
 * Aggregation
 * Analytical query performance
 
-The eventual benchmark will compare six combinations:
+The benchmark compares six combinations:
 
 | Engine  | CSV | Parquet |
 | ------- | :-: | :-----: |
@@ -44,7 +45,28 @@ The eventual benchmark will compare six combinations:
 | PySpark |  ✓  |    ✓    |
 | DuckDB  |  ✓  |    ✓    |
 
-The same analytical workloads will be applied to each combination.
+The same analytical workloads are applied to each combination.
+
+Current benchmark workloads include:
+
+1. Full dataset read
+2. Filter and aggregation
+3. Group-by aggregation
+4. In-memory column projection
+5. Direct column projection from disk
+6. Filter and projection
+
+## Benchmark Output
+
+The project provides an interactive command-line menu for running the
+different benchmark stages.
+
+![Benchmark menu](screenshots/benchmark_menu.png)
+
+Example benchmark results are displayed grouped by workload and
+processing engine:
+
+![Benchmark results](screenshots/benchmark_results.png)
 
 ## Dataset
 
@@ -66,6 +88,7 @@ Expected files:
 
 ```text
 data/
+
 ├── AIML Dataset.csv
 └── AIML Dataset.parquet
 ```
@@ -89,52 +112,105 @@ Current validation confirms:
 
 Completed initial Pandas workloads.
 
-Initial results on the local development machine:
+The Pandas runner now supports the common benchmark workloads used by the project, including:
 
-| Workload                     |     CSV |     Parquet |
-| ---------------------------- | ------: | ----------: |
-| Full dataset load            | 7.678 s | **0.365 s** |
-| Fraud analysis               | 0.013 s |     0.083 s |
-| Transaction type aggregation | 0.249 s |     0.365 s |
-| Three-column load            | 2.969 s | **0.112 s** |
+* Full dataset loading
+* Filtering and aggregation
+* Group-by aggregation
+* Column projection
+* Direct column projection from disk
+* Filtering and projection
 
-The full dataset is approximately:
+### Milestone 3 — PySpark benchmark
+
+Completed initial PySpark workloads using the same benchmark structure as Pandas.
+
+The PySpark runner supports the same six analytical workloads, allowing CSV and Parquet performance to be compared using equivalent operations.
+
+### Milestone 4 — Benchmark framework
+
+Completed the initial common benchmark structure.
+
+The project now includes:
+
+* A common `Benchmark` class for storing benchmark results
+* A common `BenchmarkResult` structure
+* Result validation for equivalent CSV and Parquet operations
+* Engine-specific result replacement when a benchmark is rerun
+* Readable grouped benchmark result output
+* An interactive menu for running individual benchmark groups
+
+The menu allows individual tests to be run without executing the entire benchmark suite.
+
+### Milestone 5 — CSV schema loading experiment
+
+Completed initial schema-loading experiment using PySpark.
+
+The experiment compares:
+
+* Spark schema inference
+* An explicitly declared schema
+
+Progressively larger CSV datasets are tested at:
+
+* 10%
+* 25%
+* 50%
+* 75%
+* 100%
+
+Initial testing indicates that explicitly declaring the schema can substantially reduce CSV loading time in the current environment.
+
+This experiment is kept separate from the main CSV vs Parquet benchmark.
+
+### Dataset size
+
+The full dataset files are approximately:
 
 | Format  |      Size |
 | ------- | --------: |
 | CSV     | 470.67 MB |
 | Parquet | 252.90 MB |
 
-These timings are preliminary single-run measurements and are **not intended to represent final benchmark results**. Later stages will introduce repeated measurements and more controlled benchmarking.
+Benchmark timings are currently preliminary single-run measurements and are **not intended to represent final benchmark results**. Repeated measurements and median timings will be introduced before final results are analysed.
 
 ## Planned Work
 
 The project will progressively add:
 
-1. Pandas CSV vs Parquet analysis
-2. DuckDB CSV vs Parquet analysis
-3. PySpark CSV vs Parquet analysis
-4. A common benchmark structure
-5. Repeated measurements and result validation
-6. Benchmark result storage and analysis
-7. Parquet compression comparisons
-8. Partitioned Parquet experiments
-9. Spark execution-plan analysis
+1. DuckDB CSV vs Parquet analysis
+2. Repeated measurements and median timing
+3. Storage-location comparisons
+4. Benchmark result export and analysis
+5. Parquet compression comparisons
+6. Partitioned Parquet experiments
+7. Spark execution-plan analysis
 
 ## Project Structure
 
 ```text
 parquet-performance-analysis/
+
 │
 ├── data/
 │   ├── AIML Dataset.csv
-│   └── AIML Dataset.parquet
+│   ├── AIML Dataset.parquet
+│   └── resized/
 │
 ├── src/
-│   ├── data_loader.py
-│   └── pandas_runner.py
+│   ├── benchmark.py
+│   ├── dataset_loader.py
+│   ├── pandas_runner.py
+│   ├── pandas_tests.py
+│   ├── pyspark_runner.py
+│   ├── pyspark_tests.py
+│   └── utils.py
 │
 ├── results/
+│
+├── notebooks/
+│
+├── tests/
 │
 ├── main.py
 ├── requirements.txt
@@ -154,4 +230,3 @@ The dataset files and generated benchmark results are excluded from version cont
 ## Purpose
 
 This project is intended as a practical exploration of data-engineering concepts including columnar storage, analytical processing, file formats, query performance and distributed data processing.
-

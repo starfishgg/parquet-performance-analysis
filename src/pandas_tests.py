@@ -25,6 +25,11 @@ def run_pandas_benchmark(
     the in-memory analytical workloads.
     """
 
+    # Remove the old results before appending new ones.
+    benchmark.remove_results_for_engine(
+        Benchmark.ENGINE_PANDAS
+    )
+
     print_section("PANDAS PERFORMANCE TEST")
 
     print("\nLoading CSV with Pandas...")

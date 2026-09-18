@@ -89,7 +89,7 @@ class PySparkRunner:
         dataframe = (
             self.spark.read
             .option("header", True)
-            .option("inferSchema", True) #.schema(self.TRANSACTION_SCHEMA)
+            .schema(self.TRANSACTION_SCHEMA) # .option("inferSchema", True)
             .csv(str(self.csv_path))
         )
 
